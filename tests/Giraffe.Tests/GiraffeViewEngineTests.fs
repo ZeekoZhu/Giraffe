@@ -52,3 +52,23 @@ let ``Void tag in XML should be self closing tag`` () =
 let ``Void tag in HTML should be unary tag`` () =
     let unary =  br [] |> renderHtmlNode
     Assert.Equal("<br>", unary)
+
+[<Fact>]
+let ``Fragment should render correctly`` () =
+    let tags = [
+        script [ _src "tags"; _async ] []
+        script [] [ rawText "tags script" ]
+    ]
+    let headWithList =
+        head [] ( [ meta [ _title "mysite" ] ]
+                 @ tags
+                 @ [ link [ _rel "icon"; _href "./favicon.ico" ] ] )
+        |> renderHtmlNode
+    let headWithFragment =
+        head [] [
+            meta [ _title "mysite" ]
+            fragment tags
+            link [ _rel "icon"; _href "./favicon.ico" ]
+        ]
+        |> renderHtmlNode
+    Assert.Equal(headWithList, headWithFragment)

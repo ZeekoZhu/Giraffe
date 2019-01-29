@@ -37,6 +37,7 @@ type XmlNode =
     | ParentNode  of XmlElement * XmlNode list // An XML element which contains nested XML elements
     | VoidElement of XmlElement                // An XML element which cannot contain nested XML (e.g. <hr /> or <br />)
     | Text        of string                    // Text content
+    | Fragment    of XmlNode list              // A list of children without adding extra nodes
 
 // ---------------------------
 // Helper functions
@@ -59,6 +60,8 @@ let tag (tagName    : string)
 let voidTag (tagName    : string)
             (attributes : XmlAttribute list) =
     VoidElement (tagName, Array.ofList attributes)
+    
+let fragment (nodes : XmlNode list) = Fragment nodes
 
 /// **Description**
 ///
@@ -548,10 +551,14 @@ module ViewBuilder =
             for node in nodes do buildNode isHtml sb node
             do sb += "</" += elemName +! ">"
 
+        let inline buildFragment (nodes : XmlNode list) =
+            for node in nodes do buildNode isHtml sb node
+
         match node with
         | Text text             -> do sb +! text
         | ParentNode (e, nodes) -> do buildParentNode e nodes
         | VoidElement e         -> do buildElement (selfClosingBracket isHtml) e
+        | Fragment nodes        -> do buildFragment nodes
 
     let buildXmlNode  = buildNode false
     let buildHtmlNode = buildNode true
